@@ -36,7 +36,6 @@ def fetch_url(url, config):
         return page_content
     except Exception, e:
         sys.stderr.write("ERR: %s\n" % e)
-        sys.exit(1)
 
 
 # MAIN
