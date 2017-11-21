@@ -57,24 +57,43 @@ except Exception, e:
 for cfg in settings["instances"]:
     baseurl = cfg["protocol"] + "://" + cfg["host"] + ":" + cfg["port"] + "/management"
     html = fetch_url(baseurl, cfg)
-    s_host = json.loads(html.read())
+    try:
+        s_host = json.loads(html.read())
+    except:
+        print("FATAL: Something went wrong.")
+        sys.exit(1)
     # STANDALONE
     if "host" not in s_host:
         url = baseurl + "/subsystem/datasources"
         html = fetch_url(url, cfg)
-        s_ds = json.loads(html.read())
-        if not s_ds["data-source"]: continue
-        for ds in s_ds["data-source"].keys():
-            dsurl = url + "/data-source/" + ds + "/statistics/pool?include-runtime"
-            html = fetch_url(dsurl, cfg)
-            s_stats = json.loads(html.read())
-            for key, value in s_stats.items():
-                for stats in cfg["stats"]:
-                    if key == stats["name"]:
-                        perf_data += key + "=" + value + ";" + stats["warn_lower"] + ":" + stats["warn_upper"] + ";" + \
-                                     stats["crit_lower"] + ":" + stats["crit_upper"] + "|"
-            print ("P %s_%s %s" % (mk_check_name, ds, perf_data[:-1]))
-            perf_data = ""
+        try:
+            s_ds = json.loads(html.read())
+        except:
+            continue
+        if s_ds["data-source"]:
+            for ds in s_ds["data-source"].keys():
+                dsurl = url + "/data-source/" + ds + "/statistics/pool?include-runtime"
+                html = fetch_url(dsurl, cfg)
+                s_stats = json.loads(html.read())
+                for key, value in s_stats.items():
+                    for stats in cfg["stats"]:
+                        if key == stats["name"]:
+                            perf_data += key + "=" + value + ";" + stats["warn_lower"] + ":" + stats["warn_upper"] + ";" + \
+                                         stats["crit_lower"] + ":" + stats["crit_upper"] + "|"
+                print ("P %s_%s %s" % (mk_check_name, ds, perf_data[:-1]))
+                perf_data = ""
+        if s_ds["xa-data-source"]:
+            for ds in s_ds["xa-data-source"].keys():
+                dsurl = url + "/xa-data-source/" + ds + "/statistics/pool?include-runtime"
+                html = fetch_url(dsurl, cfg)
+                s_stats = json.loads(html.read())
+                for key, value in s_stats.items():
+                    for stats in cfg["stats"]:
+                        if key == stats["name"]:
+                            perf_data += key + "=" + value + ";" + stats["warn_lower"] + ":" + stats["warn_upper"] + ";" + \
+                                         stats["crit_lower"] + ":" + stats["crit_upper"] + "|"
+                print ("P %s_%s %s" % (mk_check_name, ds, perf_data[:-1]))
+                perf_data = ""
     else:
         # DOMAIN
         for host in s_host["host"].keys():
@@ -85,16 +104,31 @@ for cfg in settings["instances"]:
                 for server in s_server["server"].keys():
                     serverurl = hosturl + server + "/subsystem/datasources"
                     html = fetch_url(serverurl, cfg)
-                    s_ds = json.loads(html.read())
-                    if not s_ds["data-source"]: continue
-                    for ds in s_ds["data-source"].keys():
-                        dsurl = serverurl + "/data-source/" + ds + "/statistics/pool?include-runtime"
-                        html = fetch_url(dsurl, cfg)
-                        s_stats = json.loads(html.read())
-                        for key, value in s_stats.items():
-                            for stats in cfg["stats"]:
-                                if key == stats["name"]:
-                                    perf_data += key + "=" + value + ";" + stats["warn_lower"] + ":" + stats[
-                                        "warn_upper"] + ";" + stats["crit_lower"] + ":" + stats["crit_upper"] + "|"
-                        print ("P %s_%s_%s %s" % (mk_check_name, server, ds, perf_data[:-1]))
-                        perf_data = ""
+                    try:
+                        s_ds = json.loads(html.read())
+                    except:
+                        continue
+                    if s_ds["data-source"]:
+                        for ds in s_ds["data-source"].keys():
+                            dsurl = serverurl + "/data-source/" + ds + "/statistics/pool?include-runtime"
+                            html = fetch_url(dsurl, cfg)
+                            s_stats = json.loads(html.read())
+                            for key, value in s_stats.items():
+                                for stats in cfg["stats"]:
+                                    if key == stats["name"]:
+                                        perf_data += key + "=" + value + ";" + stats["warn_lower"] + ":" + stats[
+                                            "warn_upper"] + ";" + stats["crit_lower"] + ":" + stats["crit_upper"] + "|"
+                            print ("P %s_%s_%s %s" % (mk_check_name, server, ds, perf_data[:-1]))
+                            perf_data = ""
+                    if s_ds["xa-data-source"]:
+                        for ds in s_ds["xa-data-source"].keys():
+                            dsurl = serverurl + "/xa-data-source/" + ds + "/statistics/pool?include-runtime"
+                            html = fetch_url(dsurl, cfg)
+                            s_stats = json.loads(html.read())
+                            for key, value in s_stats.items():
+                                for stats in cfg["stats"]:
+                                    if key == stats["name"]:
+                                        perf_data += key + "=" + value + ";" + stats["warn_lower"] + ":" + stats[
+                                            "warn_upper"] + ";" + stats["crit_lower"] + ":" + stats["crit_upper"] + "|"
+                            print ("P %s_%s_%s %s" % (mk_check_name, server, ds, perf_data[:-1]))
+                            perf_data = ""
