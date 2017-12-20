@@ -35,7 +35,7 @@ def fetch_url(url, config):
         page_content = urllib2.urlopen(url)
         return page_content
     except Exception, e:
-        sys.stderr.write("ERR: %s\n" % e)
+        sys.stderr.write("ERR: %s on %s\n" % (e, url))
 
 
 # MAIN
