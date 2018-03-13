@@ -32,10 +32,10 @@ def fetch_url(url, config):
         authhandler.add_password(config["realm"], url, config["username"], config["password"])
         opener = urllib2.build_opener(authhandler)
         urllib2.install_opener(opener)
-        page_content = urllib2.urlopen(url)
+        page_content = urllib2.urlopen(url, timeout=5)
         return page_content
     except Exception, e:
-        sys.stderr.write("ERR: %s on %s\n" % (e, url))
+        sys.stderr.write("ERR: %s_%s_%s %s\n" % (mk_check_name, server, ds, e))
 
 
 # MAIN
